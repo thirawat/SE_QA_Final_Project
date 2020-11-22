@@ -62,7 +62,7 @@
                         </li>
                         <!-- Logout    -->
                         <li class="nav-item">
-                            <a id="logoutBtn" href="#" class="nav-link logout">ออกจากระบบ
+                            <a id="logoutBtn" href="#" class="nav-link logout" onclick="logout()">ออกจากระบบ
                                 <i class="fa fa-sign-out"></i>
                             </a>
                         </li>
@@ -129,6 +129,15 @@
         </section>
     </div>
 
+    <!-- Javascript files-->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="../../lib/js/tether.min.js"></script>
+    <script src="../../lib/js/bootstrap.min.js"></script>
+    <script src="../../lib/js/jquery.cookie.js"></script>
+    <script src="../../lib/js/jquery.validate.min.js"></script>
+    <script src="../../lib/js/front.js"></script>
+    <script src="../../lib/js/sweetalert2.js"></script>
+    <script src="../../lib/js/cookie-mgmt.js"></script>
     <script type="text/javascript">
       function loadCustInfo(){
         var acctNum = readCookie("authentication");
@@ -167,16 +176,86 @@
           }
           return val;
       }
+
+        $( "#phoneForm" ).submit(function( event ) {
+            $.ajax({
+                method: "POST",
+                url: "/src/controller.php",
+                dataType: "json",
+                data: {
+                    service:"BillPaymentInq",
+                    transaction: {
+                        bill_type : 'phoneCharge'
+                    }
+                }
+            }).done(function (responseCharge) {
+                if (responseCharge.isError){
+                    swal({
+                        title: 'ผิดพลาด',
+                        text: `ไม่สามารถดึงข้อมูลได้`,
+                        type: "error",
+                    })
+                }
+                else{
+                    var accPhoneCharge = commaSeparateNumber(responseCharge.accPhoneCharge)
+                    swal({
+                        title: 'ชำระค่าโทรศัพท์',
+                        text: `ชำระค่าโทรศัพท์เป็นเงิน ${accPhoneCharge} บาท`,
+                        type: "info",
+                        showCancelButton: true,
+                        confirmButtonText: 'ยืนยัน',
+                        cancelButtonText: 'ยกเลิก',
+                        reverseButtons: true
+                    }).then((result) => {
+                        if (result === true) {
+                             $.ajax({
+                                method: "POST",
+                                url: "/src/controller.php",
+                                dataType: "json",
+                                data: {
+                                    service:"BillPayment",
+                                    transaction: {
+                                        bill_type : 'phoneCharge'
+                                    }
+                                }
+                            }).done(function (responseBalance) {
+                                if (responseBalance.isError){
+                                    swal({
+                                        title: 'ผิดพลาด',
+                                        text: `${responseBalance.message}`,
+                                        type: "error",
+                                    })
+                                }
+                                else{
+                                    var accBalance = commaSeparateNumber(responseBalance.accBalance)
+                                    $("#charge").text(commaSeparateNumber(responseBalance.accPhoneCharge));
+                                    swal({
+                                        title: 'ชำระค่าโทรศัพท์เรียบร้อย',
+                                        text: `ยอดเงินคงเหลือ = ${accBalance} บาท`,
+                                        type: "success",
+                                    })
+                                }
+                            }).fail(function(xhr,status,error){
+                                swal(
+                                    'ผิดพลาด',
+                                    error,
+                                    'error'
+                                );
+                            });
+                        }
+                    }).catch(swal.noop);
+                }
+            }).fail(function(xhr,status,error){
+                swal(
+                    'ผิดพลาด',
+                    error,
+                    'error'
+                );
+            });
+            event.preventDefault();
+        });
     </script>
-    <script src="../../lib/js/cookie-mgmt.js"></script>
-    <!-- Javascript files-->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-    <script src="../../lib/js/tether.min.js"></script>
-    <script src="../../lib/js/bootstrap.min.js"></script>
-    <script src="../../lib/js/jquery.cookie.js"></script>
-    <script src="../../lib/js/jquery.validate.min.js"></script>
-    <script src="../../lib/js/front.js"></script>
-    <script src="../../lib/js/sweetalert2.js"></script>
+
 </body>
 
 </html>

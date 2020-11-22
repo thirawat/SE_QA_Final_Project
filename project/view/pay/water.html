@@ -62,7 +62,7 @@
                         </li>
                         <!-- Logout    -->
                         <li class="nav-item">
-                            <a id="logoutBtn" href="#" class="nav-link logout">ออกจากระบบ
+                            <a id="logoutBtn" href="#" class="nav-link logout" onclick="logout()">ออกจากระบบ
                                 <i class="fa fa-sign-out"></i>
                             </a>
                         </li>
@@ -128,47 +128,6 @@
             </div>
         </section>
     </div>
-
-    <script type="text/javascript">
-      function loadCustInfo(){
-        var acctNum = readCookie("authentication");
-        if(acctNum){
-          $.ajax({
-            method: "POST",
-            url: "../../src/controller.php",
-            dataType: "json",
-            data: {
-              service:"ServiceAuthentication",
-            }
-          })
-            .done(function (result) {
-              if (result.isError){
-                swal(
-                    'ผิดพลาด',
-                    result.message,
-                    'error'
-                );
-              }
-              else{
-                $("#charge").text(commaSeparateNumber(result.accWaterCharge));
-              }
-            }).fail(function(xhr,status,error){
-              swal(
-                  'ผิดพลาด',
-                  error,
-                  'error'
-              );
-            });;
-        }
-      }
-      function commaSeparateNumber(val) {
-          while (/(\d+)(\d{3})/.test(val.toString())) {
-              val = val.toString().replace(/(\d+)(\d{3})/, '$1' + ',' + '$2');
-          }
-          return val;
-      }
-    </script>
-    <script src="../../lib/js/cookie-mgmt.js"></script>
     <!-- Javascript files-->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
     <script src="../../lib/js/tether.min.js"></script>
@@ -177,6 +136,124 @@
     <script src="../../lib/js/jquery.validate.min.js"></script>
     <script src="../../lib/js/front.js"></script>
     <script src="../../lib/js/sweetalert2.js"></script>
+    <script src="../../lib/js/cookie-mgmt.js"></script>
+    <script type="text/javascript">
+        function loadCustInfo(){
+            var acctNum = readCookie("authentication");
+            if(acctNum){
+                $.ajax({
+                    method: "POST",
+                    url: "../../src/controller.php",
+                    dataType: "json",
+                    data: {
+                    service:"ServiceAuthentication",
+                    }
+                }).done(function (result) {
+                    if (result.isError){
+                        swal(
+                            'ผิดพลาด',
+                            result.message,
+                            'error'
+                        );
+                    }
+                    else{
+                        $("#charge").text(commaSeparateNumber(result.accWaterCharge));
+                    }
+                    }).fail(function(xhr,status,error){
+                    swal(
+                        'ผิดพลาด',
+                        error,
+                        'error'
+                    );
+                });
+            }
+        }
+        function commaSeparateNumber(val) {
+            while (/(\d+)(\d{3})/.test(val.toString())) {
+                val = val.toString().replace(/(\d+)(\d{3})/, '$1' + ',' + '$2');
+            }
+            return val;
+        }
+
+        $( "#waterForm" ).submit(function( event ) {
+            $.ajax({
+                method: "POST",
+                url: "/src/controller.php",
+                dataType: "json",
+                data: {
+                    service:"BillPaymentInq",
+                    transaction: {
+                        bill_type : 'waterCharge'
+                    }
+                }
+            }).done(function (responseCharge) {
+                if (responseCharge.isError){
+                    swal({
+                        title: 'ผิดพลาด',
+                        text: `ไม่สามารถดึงข้อมูลได้`,
+                        type: "error",
+                    })
+                }
+                else{
+                    var accWaterCharge = commaSeparateNumber(responseCharge.accWaterCharge)
+                    swal({
+                        title: 'ชำระค่าน้ำ',
+                        text: `ชำระค่าน้ำเป็นเงิน ${accWaterCharge} บาท`,
+                        type: "info",
+                        showCancelButton: true,
+                        confirmButtonText: 'ยืนยัน',
+                        cancelButtonText: 'ยกเลิก',
+                        reverseButtons: true
+                    }).then((result) => {
+                        if (result === true) {
+                             $.ajax({
+                                method: "POST",
+                                url: "/src/controller.php",
+                                dataType: "json",
+                                data: {
+                                    service:"BillPayment",
+                                    transaction: {
+                                        bill_type : 'waterCharge'
+                                    }
+                                }
+                            }).done(function (responseBalance) {
+                                if (responseBalance.isError){
+                                    swal({
+                                        title: 'ผิดพลาด',
+                                        text: `${responseBalance.message}`,
+                                        type: "error",
+                                    })
+                                }
+                                else{
+                                    var accBalance = commaSeparateNumber(responseBalance.accBalance)
+                                    $("#charge").text(commaSeparateNumber(responseBalance.accWaterCharge));
+                                    swal({
+                                        title: 'ชำระค่าน้ำเรียบร้อย',
+                                        text: `ยอดเงินคงเหลือ = ${accBalance} บาท`,
+                                        type: "success",
+                                    })
+                                }
+                            }).fail(function(xhr,status,error){
+                                swal(
+                                    'ผิดพลาด',
+                                    error,
+                                    'error'
+                                );
+                            });
+                        }
+                    }).catch(swal.noop);
+                }
+            }).fail(function(xhr,status,error){
+                swal(
+                    'ผิดพลาด',
+                    error,
+                    'error'
+                );
+            });
+            event.preventDefault();
+        });
+    </script>
+
 </body>
 
 </html>

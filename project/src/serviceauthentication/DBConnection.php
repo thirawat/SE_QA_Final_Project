@@ -66,4 +66,34 @@ class DBConnection {
         }
         return $result->fetch_array(MYSQLI_ASSOC);
     }
+
+    public static function saveTransactionWaterCharge(string $accNo, int $updatedBalance): bool {
+        $con = new mysqli('database', 'root', '1q2w3e4r5t', 'integration');
+
+        $stmt = "UPDATE ACCOUNT SET waterCharge = ". $updatedBalance. " WHERE no = ". $accNo;
+        $result = $con->query($stmt);
+        $con->close();
+
+        return $result;
+    }
+
+    public static function saveTransactionElectricCharge(string $accNo, int $updatedBalance): bool {
+        $con = new mysqli('database', 'root', '1q2w3e4r5t', 'integration');
+
+        $stmt = "UPDATE ACCOUNT SET electricCharge = ". $updatedBalance. " WHERE no = ". $accNo;
+        $result = $con->query($stmt);
+        $con->close();
+
+        return $result;
+    }
+
+    public static function saveTransactionPhoneCharge(string $accNo, int $updatedBalance): bool {
+        $con = new mysqli('database', 'root', '1q2w3e4r5t', 'integration');
+
+        $stmt = "UPDATE ACCOUNT SET phoneCharge = ". $updatedBalance. " WHERE no = ". $accNo;
+        $result = $con->query($stmt);
+        $con->close();
+
+        return $result;
+    }
 }

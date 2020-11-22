@@ -2,19 +2,27 @@
 
 class StubWithdrawal
 {
-    private $accNo;
 
-    public function __construct(string $accNo)
+    public static function serviceAuthentication($accNo): array
     {
-        $this->accNo = $accNo;
+        if ($accNo == '1234567890') {
+            return array("accNo" => $accNo, "accName" => "TestAccountName", "accBalance" => 10000, "isError" => false);
+        } else {
+            return array("isError" => true, "message" => "Account number : " . $accNo . " not found.");
+        }
     }
 
-    public function withdraw(string $amount): array
+    public static function doWithdraw($accNo, $amount): array
     {
-        if ($this->accNo == '1234567890') {
-            return array("isError" => true,"isError" => false, "accNo" => $this->accNo, "accName" => "TestAccountName", "accBalance" => 10000 - $amount);
-        } else {
-            return array("isError" => true, "message" => "Account number : " . $this->accNo . " not found.");
+        if (10000 - $amount >= 0) {
+            return array("accNo" => $accNo, "accName" => "TestAccountName", "accBalance" => 10000 - $amount, "isError" => false);
+        }else {
+            return array("isError" => true, "message" => "ยอดเงินในบัญชีไม่เพียงพอ");
         }
+    }
+
+    public static function saveTransaction($accNo, $updatedBalance): bool
+    {
+        return true;
     }
 }

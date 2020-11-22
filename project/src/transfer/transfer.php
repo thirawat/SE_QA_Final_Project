@@ -1,6 +1,7 @@
 <?php namespace Operation;
 
 require_once __DIR__."./../../src/deposit/DepositService.php";
+require_once __DIR__."./../../src/withdraw/Withdrawal.php";
 require_once __DIR__."./../../src/withdraw/StubWithdrawal.php";
 require_once __DIR__."./../../src/deposit/StubDeposit.php";
 require_once __DIR__."./../serviceauthentication/serviceauthentication.php";
@@ -9,6 +10,7 @@ require_once __DIR__."./../serviceauthentication/DBConnection.php";
 use DBConnection;
 use ServiceAuthentication;
 use Operation\DepositService;
+use Operation\Withdrawal;
 use AccountInformationException;
 use Stub\StubWithdrawal;
 use Stub\StubDeposit;
@@ -59,7 +61,7 @@ class transfer{
                 if ($srcAccount['accBalance'] - (int)$amount < 0) {
                     $response["message"] = "คุณมียอดเงินในบัญชีไม่เพียงพอ";
                 } else {
-                    $withdraw = new StubWithdrawal($srcAccount['accNo']);
+                    $withdraw = new Withdrawal($srcAccount['accNo']);
                     $withdrawResult = $withdraw->withdraw($amount);
 
                     $deposit =  new DepositService($desAccount['accNo']);
