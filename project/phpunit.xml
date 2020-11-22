@@ -1,0 +1,22 @@
+<phpunit 
+        bootstrap="vendor/autoload.php"
+    	backupGlobals="false"
+		colors="true"
+		convertErrorsToExceptions="true"
+		convertNoticesToExceptions="true"
+		convertWarningsToExceptions="true"
+		verbose="true">
+    <testsuites>
+        <testsuite name="Deposit">
+            <directory suffix="Test.php">test/Deposit</directory>
+        </testsuite>
+    </testsuites>
+    <filter>
+        <whitelist processUncoveredFilesFromWhitelist="false">
+            <directory suffix=".php">./src</directory>
+        </whitelist>
+    </filter>
+	<logging>
+        <log type="coverage-html" target="coverage/phpunit/html" lowUpperBound="35" highLowerBound="70"/>
+    </logging>
+</phpunit>

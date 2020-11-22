@@ -1,0 +1,65 @@
+version: '3.2'
+services:
+  php:
+    build:
+      context: ./
+      dockerfile: app.dockerfile
+    restart: always  
+    volumes:
+      - ./project:/test:rw
+      - ./config/php.ini:/usr/local/etc/php/conf.d/custom.ini:rw
+      - ./config/www.conf:/usr/local/etc/php-fpm.d/www.conf:rw
+      - ./config/freetds.conf:/etc/freetds/freetds.conf:rw
+      - ./config/crontab:/etc/cron.d/app-cron:rw
+      - ./config/timezone:/etc/timezone:rw
+    env_file: .env
+    # command: bash -c "cron && php-fpm"
+    logging:
+      driver: json-file
+      options:
+        max-size: 50m
+    networks:
+      - proxy-nw 
+
+  web:
+    image: nginx:latest
+    restart: always
+    ports:
+      - "8080:8080"
+    links:
+      - php
+    environment:
+      VIRTUAL_HOST: cu-bank.demosolution.app
+      VIRTUAL_PORT: 8080
+      LETSENCRYPT_HOST: cu-bank.demosolution.app
+    volumes:
+      - ./project:/test:rw
+      - ./site_config/site_test.conf:/etc/nginx/conf.d/site_test.conf:rw
+      - ./config/timezone:/etc/timezone:rw
+    logging:
+      driver: json-file
+      options:
+        max-size: 50m
+    networks:
+      - proxy-nw
+      
+  database:
+    container_name : database
+    image: mariadb
+    restart: always
+    volumes:
+      - ./dbdata:/var/lib/mysql:rw
+      - ./config/my.cnf:/etc/mysql/my.cnf
+    env_file:
+      - .env
+    logging:
+      driver: json-file
+      options:
+        max-size: 50m
+    networks:
+      - proxy-nw
+
+networks:
+  proxy-nw:
+    external:
+      name: proxy-nw
